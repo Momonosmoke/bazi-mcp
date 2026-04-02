@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import z from 'zod';
-import { getBaziDetail, getChineseCalendar, getInferenceDecision, getSolarTimes } from './index.js';
+import { getBaziDetail, getChineseCalendar, getConsultationProtocol, getInferenceDecision, getSolarTimes } from './index.js';
 
 const server = new McpServer({
   name: 'Bazi',
@@ -22,6 +22,23 @@ server.tool(
   },
   async (data) => {
     const result = await getBaziDetail(data);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result),
+        },
+      ],
+    };
+  },
+);
+
+server.tool(
+  'getConsultationProtocol',
+  'Returns the Vietnamese Bazi consultation preset for new sessions, including narrative response style and anti-hallucination policy.',
+  {},
+  async () => {
+    const result = await getConsultationProtocol();
     return {
       content: [
         {

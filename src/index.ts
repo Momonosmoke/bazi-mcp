@@ -1,5 +1,6 @@
 import { EightChar, LunarHour } from 'tyme4ts';
 import { buildBazi } from './lib/bazi.js';
+import { getConsultationProtocol as getConsultationProtocolLib } from './lib/consultationProtocol.js';
 import { formatSolarTime, getSolarTime } from './lib/date.js';
 import { decideInferenceAction } from './lib/inferencePolicy.js';
 
@@ -53,4 +54,8 @@ export const getInferenceDecision = async (data: {
   }>;
 }) => {
   return decideInferenceAction(data);
+};
+
+export const getConsultationProtocol = async () => {
+  return getConsultationProtocolLib();
 };

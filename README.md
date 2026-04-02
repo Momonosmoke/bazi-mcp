@@ -77,6 +77,18 @@ npx -y @smithery/cli install @cantian-ai/bazi-mcp --client claude
 
 ## 工具列表 | Tools
 
+### getConsultationProtocol
+
+> 获取面向越南用户的咨询预设（叙事风格、提问策略、时间规则、反幻觉策略）。  
+> Returns a ready-to-use Vietnamese consultation preset for new sessions.
+
+#### 使用方式 | Usage
+
+- 在新会话开始时先调用一次。  
+  Call once at the beginning of a new session.
+- 将返回的 `starterSystemPrompt` 直接作为系统提示词。  
+  Use returned `starterSystemPrompt` as your system prompt.
+
 ### getInferenceDecision
 
 > 用于防止“证据不足时硬结论”的策略工具，返回 `conclude`、`ask` 或 `abstain`。  
