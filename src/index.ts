@@ -43,14 +43,26 @@ export const getInferenceDecision = async (data: {
   askedPresentQuestions?: number;
   pastValidationScore?: number;
   presentStateClarity?: number;
-  claims: Array<{ claimId: string; confidence: number; evidenceFromChart: boolean }>;
+  claims: Array<{
+    claimId: string;
+    confidence: number;
+    evidenceFromChart: boolean;
+    domains?: Array<'tai_chinh' | 'to_tien' | 'bo_me' | 'vo_chong' | 'con_cai' | 'su_nghiep' | 'suc_khoe'>;
+  }>;
   targetClaimIds?: string[];
+  crossLinks?: Array<{
+    sourceDomain: 'tai_chinh' | 'to_tien' | 'bo_me' | 'vo_chong' | 'con_cai' | 'su_nghiep' | 'suc_khoe';
+    targetDomain: 'tai_chinh' | 'to_tien' | 'bo_me' | 'vo_chong' | 'con_cai' | 'su_nghiep' | 'suc_khoe';
+    weight: number;
+    reason?: string;
+  }>;
   candidateQuestions?: Array<{
     questionId: string;
     questionText: string;
     claimIds: string[];
     expectedConfidenceGain: number;
     scope?: 'past' | 'present';
+    domains?: Array<'tai_chinh' | 'to_tien' | 'bo_me' | 'vo_chong' | 'con_cai' | 'su_nghiep' | 'suc_khoe'>;
   }>;
 }) => {
   return decideInferenceAction(data);

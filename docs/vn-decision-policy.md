@@ -8,6 +8,7 @@ This policy is designed for Vietnamese Bazi consultation workflows where the ass
 2. If confidence is below threshold, ask follow-up questions to validate.
 3. Ask only high-value questions and keep question volume bounded.
 4. If confidence cannot be raised safely within limits, abstain.
+5. Use cross-domain links (finance, parents, marriage, etc.) to prioritize validation questions.
 
 ## Constants
 
@@ -31,8 +32,9 @@ The policy can also read `askedPastQuestions` and `askedPresentQuestions` to kee
 3. If none unresolved, return `conclude`.
 4. If round or question budget exceeded, return `abstain`.
 5. Rank candidate questions by `expectedConfidenceGain`.
-6. Allocate question slots by dynamic past/present mix first, then fill remaining slots by gain.
-7. Recompute confidence after each round and repeat.
+6. Apply cross-domain bonus for questions that connect related domains.
+7. Allocate question slots by dynamic past/present mix first, then fill remaining slots by gain.
+8. Recompute confidence after each round and repeat.
 
 ## Notes for product behavior
 

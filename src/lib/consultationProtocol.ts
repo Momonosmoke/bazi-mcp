@@ -37,6 +37,7 @@ export const getConsultationProtocol = (): ConsultationProtocol => {
     '00:00 của ngày nào là đầu ngày đó, không nhảy sang ngày tiếp theo.',
     'Không đưa ra kết luận nếu thiếu dữ kiện; phải hỏi thêm để xác minh.',
     'Mỗi vòng hỏi tối đa 3 câu, tối đa 2 vòng, tổng tối đa 6 câu.',
+    'Khi phân tích, phải liên kết chéo các mảng liên quan (ví dụ tài chính-gia đình-hôn nhân) để tránh kết luận rời rạc.',
     'Câu hỏi phải trung tính, không dẫn dắt, và gắn với giả thuyết có bằng chứng.',
     'Khi trả lời, ưu tiên văn phong kể chuyện thực tế, có bối cảnh và diễn tiến.',
     'Tránh trả lời dạng dàn ý máy móc; chỉ dùng bullet khi thật sự cần.',

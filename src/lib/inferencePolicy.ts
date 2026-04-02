@@ -3,10 +3,20 @@ export const MAX_ROUNDS = 2;
 export const MAX_QUESTIONS_PER_ROUND = 3;
 export const MAX_TOTAL_QUESTIONS = 6;
 
+export type Domain = 'tai_chinh' | 'to_tien' | 'bo_me' | 'vo_chong' | 'con_cai' | 'su_nghiep' | 'suc_khoe';
+
+export type CrossLink = {
+  sourceDomain: Domain;
+  targetDomain: Domain;
+  weight: number;
+  reason?: string;
+};
+
 export type Claim = {
   claimId: string;
   confidence: number;
   evidenceFromChart: boolean;
+  domains?: Domain[];
 };
 
 export type QuestionScope = 'past' | 'present';
@@ -17,6 +27,7 @@ export type CandidateQuestion = {
   claimIds: string[];
   expectedConfidenceGain: number;
   scope?: QuestionScope;
+  domains?: Domain[];
 };
 
 export type PolicyInput = {
@@ -28,6 +39,7 @@ export type PolicyInput = {
   presentStateClarity?: number;
   claims: Claim[];
   targetClaimIds?: string[];
+  crossLinks?: CrossLink[];
   candidateQuestions?: CandidateQuestion[];
 };
 
@@ -59,6 +71,11 @@ export type PolicyOutput = {
   unresolvedClaimIds: string[];
   concludedClaimIds: string[];
   selectedQuestions: CandidateQuestion[];
+  crossDomainInsights: {
+    focusDomains: Domain[];
+    relatedDomains: Array<{ domain: Domain; score: number }>;
+    note: string;
+  };
   questionMix: QuestionMix;
   reason: string;
   limits: {
@@ -69,6 +86,19 @@ export type PolicyOutput = {
 };
 
 const clampConfidence = (value: number) => {
+  if (Number.isNaN(value)) {
+    return 0;
+  }
+  if (value < 0) {
+    return 0;
+  }
+  if (value > 1) {
+    return 1;
+  }
+  return value;
+};
+
+const normalizeWeight = (value: number) => {
   if (Number.isNaN(value)) {
     return 0;
   }
@@ -120,6 +150,43 @@ const getActionVi = (action: PolicyOutput['action']): PolicyOutput['actionVi'] =
   return 'tam_dung';
 };
 
+const buildCrossDomainInsights = (claims: Claim[], crossLinks: CrossLink[]) => {
+  const focusDomainSet = new Set<Domain>();
+  for (const claim of claims) {
+    for (const domain of claim.domains ?? []) {
+      focusDomainSet.add(domain);
+    }
+  }
+  const focusDomains = Array.from(focusDomainSet);
+
+  const relatedMap = new Map<Domain, number>();
+  for (const link of crossLinks) {
+    if (!focusDomainSet.has(link.sourceDomain) || focusDomainSet.has(link.targetDomain)) {
+      continue;
+    }
+    const weight = normalizeWeight(link.weight);
+    relatedMap.set(link.targetDomain, (relatedMap.get(link.targetDomain) ?? 0) + weight);
+  }
+
+  const relatedDomains = Array.from(relatedMap.entries())
+    .map(([domain, score]) => ({ domain, score }))
+    .sort((a, b) => b.score - a.score || a.domain.localeCompare(b.domain));
+
+  if (focusDomains.length === 0) {
+    return {
+      focusDomains,
+      relatedDomains,
+      note: 'Chưa có dữ liệu miền liên kết chéo để ưu tiên.',
+    };
+  }
+
+  return {
+    focusDomains,
+    relatedDomains,
+    note: 'Đang ưu tiên câu hỏi có liên kết chéo giữa các mảng liên quan để tăng độ chính xác.',
+  };
+};
+
 const buildEmptyQuestionMix = (
   pastValidationScore: number,
   presentStateClarity: number,
@@ -143,14 +210,6 @@ const buildEmptyQuestionMix = (
   },
 });
 
-const sortQuestions = (questions: CandidateQuestion[]) =>
-  questions.sort((a, b) => {
-    if (b.expectedConfidenceGain !== a.expectedConfidenceGain) {
-      return b.expectedConfidenceGain - a.expectedConfidenceGain;
-    }
-    return a.questionId.localeCompare(b.questionId);
-  });
-
 const pickQuestions = (
   questions: CandidateQuestion[],
   count: number,
@@ -168,6 +227,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
     presentStateClarity = 0.5,
     claims,
     targetClaimIds = [],
+    crossLinks = [],
     candidateQuestions = [],
   } = input;
 
@@ -186,6 +246,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
     targetClaimIds.length > 0 ? new Set(targetClaimIds) : new Set(evidenceBackedClaims.map((claim) => claim.claimId));
 
   const targetClaims = evidenceBackedClaims.filter((claim) => targetIds.has(claim.claimId));
+  const allCrossDomainInsights = buildCrossDomainInsights(targetClaims, crossLinks);
 
   if (targetClaims.length === 0) {
     return {
@@ -195,6 +256,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
       unresolvedClaimIds: [],
       concludedClaimIds: [],
       selectedQuestions: [],
+      crossDomainInsights: allCrossDomainInsights,
       questionMix: buildEmptyQuestionMix(
         normalizedPastScore,
         normalizedPresentClarity,
@@ -210,13 +272,11 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
     };
   }
 
-  const concludedClaimIds = targetClaims
-    .filter((claim) => claim.confidence >= CONFIDENCE_THRESHOLD)
-    .map((claim) => claim.claimId);
-
-  const unresolvedClaimIds = targetClaims
-    .filter((claim) => claim.confidence < CONFIDENCE_THRESHOLD)
-    .map((claim) => claim.claimId);
+  const concludedClaims = targetClaims.filter((claim) => claim.confidence >= CONFIDENCE_THRESHOLD);
+  const unresolvedClaims = targetClaims.filter((claim) => claim.confidence < CONFIDENCE_THRESHOLD);
+  const concludedClaimIds = concludedClaims.map((claim) => claim.claimId);
+  const unresolvedClaimIds = unresolvedClaims.map((claim) => claim.claimId);
+  const unresolvedCrossDomainInsights = buildCrossDomainInsights(unresolvedClaims, crossLinks);
 
   if (unresolvedClaimIds.length === 0) {
     return {
@@ -226,6 +286,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
       unresolvedClaimIds,
       concludedClaimIds,
       selectedQuestions: [],
+      crossDomainInsights: unresolvedCrossDomainInsights,
       questionMix: buildEmptyQuestionMix(
         normalizedPastScore,
         normalizedPresentClarity,
@@ -249,6 +310,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
       unresolvedClaimIds,
       concludedClaimIds,
       selectedQuestions: [],
+      crossDomainInsights: unresolvedCrossDomainInsights,
       questionMix: buildEmptyQuestionMix(
         normalizedPastScore,
         normalizedPresentClarity,
@@ -273,6 +335,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
       unresolvedClaimIds,
       concludedClaimIds,
       selectedQuestions: [],
+      crossDomainInsights: unresolvedCrossDomainInsights,
       questionMix: buildEmptyQuestionMix(
         normalizedPastScore,
         normalizedPresentClarity,
@@ -289,15 +352,33 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
   }
 
   const unresolvedSet = new Set(unresolvedClaimIds);
-  const rankedQuestions = sortQuestions(
-    candidateQuestions
-      .map((question) => ({
+  const focusDomainSet = new Set(unresolvedCrossDomainInsights.focusDomains);
+  const relatedDomainScore = new Map<Domain, number>();
+  for (const item of unresolvedCrossDomainInsights.relatedDomains) {
+    relatedDomainScore.set(item.domain, item.score);
+  }
+
+  const rankedQuestions = candidateQuestions
+    .map((question) => {
+      const domains = question.domains ?? [];
+      const directBonus = domains.some((domain) => focusDomainSet.has(domain)) ? 0.08 : 0;
+      const relatedBonus = Math.max(0, ...domains.map((domain) => (relatedDomainScore.get(domain) ?? 0) * 0.06));
+      const expectedConfidenceGain = clampConfidence(question.expectedConfidenceGain);
+      return {
         ...question,
-        expectedConfidenceGain: clampConfidence(question.expectedConfidenceGain),
+        expectedConfidenceGain,
         scope: question.scope ?? 'past',
-      }))
-      .filter((question) => question.claimIds.some((claimId) => unresolvedSet.has(claimId))),
-  );
+        domains,
+        rankScore: expectedConfidenceGain + directBonus + relatedBonus,
+      };
+    })
+    .filter((question) => question.claimIds.some((claimId) => unresolvedSet.has(claimId)))
+    .sort((a, b) => {
+      if (b.rankScore !== a.rankScore) {
+        return b.rankScore - a.rankScore;
+      }
+      return a.questionId.localeCompare(b.questionId);
+    });
 
   if (rankedQuestions.length === 0) {
     return {
@@ -307,6 +388,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
       unresolvedClaimIds,
       concludedClaimIds,
       selectedQuestions: [],
+      crossDomainInsights: unresolvedCrossDomainInsights,
       questionMix: buildEmptyQuestionMix(
         normalizedPastScore,
         normalizedPresentClarity,
@@ -339,14 +421,29 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
   const selectedIds = new Set(selectedQuestions.map((question) => question.questionId));
 
   if (selectedQuestions.length < roundSlots) {
-    const fallback = sortQuestions(
-      rankedQuestions.filter((question) => !selectedIds.has(question.questionId)),
-    ).slice(0, roundSlots - selectedQuestions.length);
+    const fallback = rankedQuestions
+      .filter((question) => !selectedIds.has(question.questionId))
+      .sort((a, b) => {
+        if (b.rankScore !== a.rankScore) {
+          return b.rankScore - a.rankScore;
+        }
+        return a.questionId.localeCompare(b.questionId);
+      })
+      .slice(0, roundSlots - selectedQuestions.length);
     selectedQuestions.push(...fallback);
   }
 
-  const suggestedPast = selectedQuestions.filter((question) => question.scope === 'past').length;
-  const suggestedPresent = selectedQuestions.filter((question) => question.scope === 'present').length;
+  const selectedQuestionsForOutput: CandidateQuestion[] = selectedQuestions.map((question) => ({
+    questionId: question.questionId,
+    questionText: question.questionText,
+    claimIds: question.claimIds,
+    expectedConfidenceGain: question.expectedConfidenceGain,
+    scope: question.scope,
+    domains: question.domains,
+  }));
+
+  const suggestedPast = selectedQuestionsForOutput.filter((question) => question.scope === 'past').length;
+  const suggestedPresent = selectedQuestionsForOutput.filter((question) => question.scope === 'present').length;
 
   return {
     action: 'ask',
@@ -354,7 +451,8 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
     threshold: CONFIDENCE_THRESHOLD,
     unresolvedClaimIds,
     concludedClaimIds,
-    selectedQuestions,
+    selectedQuestions: selectedQuestionsForOutput,
+    crossDomainInsights: unresolvedCrossDomainInsights,
     questionMix: {
       strategy: mixPlan.strategy,
       strategyVi: getStrategyVi(mixPlan.strategy),

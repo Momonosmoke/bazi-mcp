@@ -7,6 +7,8 @@ const server = new McpServer({
   version: '0.0.1',
 });
 
+const domainEnum = z.enum(['tai_chinh', 'to_tien', 'bo_me', 'vo_chong', 'con_cai', 'su_nghiep', 'suc_khoe']);
+
 server.tool(
   'getBaziDetail',
   '根据时间（公历或农历）、性别来获取八字信息。solarDatetime和lunarDatetime必须传且只传其中一个。',
@@ -81,11 +83,23 @@ server.tool(
           claimId: z.string(),
           confidence: z.number().min(0).max(1),
           evidenceFromChart: z.boolean().describe('Chỉ true khi giả thuyết có bằng chứng rõ từ lá số.'),
+          domains: z.array(domainEnum).optional().describe('Mảng chủ đề của giả thuyết để liên kết chéo.'),
         }),
       )
       .min(1)
       .describe('Danh sách giả thuyết hiện tại kèm độ tin cậy và cờ bằng chứng.'),
     targetClaimIds: z.array(z.string()).optional().describe('Những giả thuyết mục tiêu phải đạt ngưỡng để được kết luận.'),
+    crossLinks: z
+      .array(
+        z.object({
+          sourceDomain: domainEnum.describe('Mảng gốc tạo ảnh hưởng, ví dụ: tai_chinh.'),
+          targetDomain: domainEnum.describe('Mảng liên quan bị ảnh hưởng, ví dụ: vo_chong.'),
+          weight: z.number().min(0).max(1).describe('Mức ảnh hưởng liên kết chéo từ 0 đến 1.'),
+          reason: z.string().optional().describe('Giải thích ngắn cho liên kết này.'),
+        }),
+      )
+      .optional()
+      .describe('Bảng liên kết chéo giữa các mảng để tăng độ chính xác khi hỏi và kết luận.'),
     candidateQuestions: z
       .array(
         z.object({
@@ -94,6 +108,7 @@ server.tool(
           claimIds: z.array(z.string()).min(1).describe('Các giả thuyết mà câu hỏi này có thể xác minh.'),
           expectedConfidenceGain: z.number().min(0).max(1).describe('Mức tăng tin cậy ước tính sau khi hỏi.'),
           scope: z.enum(['past', 'present']).optional().describe('Phạm vi câu hỏi: quá khứ hoặc hiện tại.'),
+          domains: z.array(domainEnum).optional().describe('Mảng mà câu hỏi đang chạm tới để tính liên kết chéo.'),
         }),
       )
       .optional()
