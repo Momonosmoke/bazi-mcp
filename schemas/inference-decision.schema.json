@@ -6,6 +6,7 @@
   "additionalProperties": false,
   "required": [
     "action",
+    "actionVi",
     "threshold",
     "unresolvedClaimIds",
     "concludedClaimIds",
@@ -18,6 +19,10 @@
     "action": {
       "type": "string",
       "enum": ["conclude", "ask", "abstain"]
+    },
+    "actionVi": {
+      "type": "string",
+      "enum": ["ket_luan", "hoi_them", "tam_dung"]
     },
     "threshold": {
       "type": "number",
@@ -61,11 +66,15 @@
     "questionMix": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["strategy", "scores", "targetTotals", "remainingTargets", "suggestedThisRound"],
+      "required": ["strategy", "strategyVi", "scores", "targetTotals", "remainingTargets", "suggestedThisRound"],
       "properties": {
         "strategy": {
           "type": "string",
           "enum": ["past_heavy", "balanced", "present_heavy"]
+        },
+        "strategyVi": {
+          "type": "string",
+          "enum": ["uu_tien_qua_khu", "can_bang", "uu_tien_hien_tai"]
         },
         "scores": {
           "type": "object",

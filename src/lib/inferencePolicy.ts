@@ -33,6 +33,7 @@ export type PolicyInput = {
 
 export type QuestionMix = {
   strategy: 'past_heavy' | 'balanced' | 'present_heavy';
+  strategyVi: 'uu_tien_qua_khu' | 'can_bang' | 'uu_tien_hien_tai';
   scores: {
     pastValidationScore: number;
     presentStateClarity: number;
@@ -53,6 +54,7 @@ export type QuestionMix = {
 
 export type PolicyOutput = {
   action: 'conclude' | 'ask' | 'abstain';
+  actionVi: 'ket_luan' | 'hoi_them' | 'tam_dung';
   threshold: number;
   unresolvedClaimIds: string[];
   concludedClaimIds: string[];
@@ -98,6 +100,26 @@ const getMixPlan = (pastValidationScore: number) => {
   };
 };
 
+const getStrategyVi = (strategy: QuestionMix['strategy']): QuestionMix['strategyVi'] => {
+  if (strategy === 'past_heavy') {
+    return 'uu_tien_qua_khu';
+  }
+  if (strategy === 'present_heavy') {
+    return 'uu_tien_hien_tai';
+  }
+  return 'can_bang';
+};
+
+const getActionVi = (action: PolicyOutput['action']): PolicyOutput['actionVi'] => {
+  if (action === 'conclude') {
+    return 'ket_luan';
+  }
+  if (action === 'ask') {
+    return 'hoi_them';
+  }
+  return 'tam_dung';
+};
+
 const buildEmptyQuestionMix = (
   pastValidationScore: number,
   presentStateClarity: number,
@@ -105,6 +127,7 @@ const buildEmptyQuestionMix = (
   targetTotals: { past: number; present: number },
 ): QuestionMix => ({
   strategy,
+  strategyVi: getStrategyVi(strategy),
   scores: {
     pastValidationScore,
     presentStateClarity,
@@ -167,6 +190,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
   if (targetClaims.length === 0) {
     return {
       action: 'abstain',
+      actionVi: getActionVi('abstain'),
       threshold: CONFIDENCE_THRESHOLD,
       unresolvedClaimIds: [],
       concludedClaimIds: [],
@@ -177,7 +201,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
         mixPlan.strategy,
         mixPlan.targetTotals,
       ),
-      reason: 'No evidence-backed claims available. Do not conclude or ask leading questions.',
+      reason: 'Chưa có giả thuyết nào đủ bằng chứng từ lá số. Tạm dừng để tránh suy diễn.',
       limits: {
         maxRounds: MAX_ROUNDS,
         maxQuestionsPerRound: MAX_QUESTIONS_PER_ROUND,
@@ -197,6 +221,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
   if (unresolvedClaimIds.length === 0) {
     return {
       action: 'conclude',
+      actionVi: getActionVi('conclude'),
       threshold: CONFIDENCE_THRESHOLD,
       unresolvedClaimIds,
       concludedClaimIds,
@@ -207,7 +232,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
         mixPlan.strategy,
         mixPlan.targetTotals,
       ),
-      reason: 'All target claims reached confidence threshold.',
+      reason: 'Tất cả giả thuyết mục tiêu đã đạt ngưỡng tin cậy.',
       limits: {
         maxRounds: MAX_ROUNDS,
         maxQuestionsPerRound: MAX_QUESTIONS_PER_ROUND,
@@ -219,6 +244,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
   if (round > MAX_ROUNDS) {
     return {
       action: 'abstain',
+      actionVi: getActionVi('abstain'),
       threshold: CONFIDENCE_THRESHOLD,
       unresolvedClaimIds,
       concludedClaimIds,
@@ -229,7 +255,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
         mixPlan.strategy,
         mixPlan.targetTotals,
       ),
-      reason: 'Maximum question rounds reached before threshold.',
+      reason: 'Đã vượt số vòng hỏi tối đa trước khi đạt ngưỡng tin cậy.',
       limits: {
         maxRounds: MAX_ROUNDS,
         maxQuestionsPerRound: MAX_QUESTIONS_PER_ROUND,
@@ -242,6 +268,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
   if (remainingBudget === 0) {
     return {
       action: 'abstain',
+      actionVi: getActionVi('abstain'),
       threshold: CONFIDENCE_THRESHOLD,
       unresolvedClaimIds,
       concludedClaimIds,
@@ -252,7 +279,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
         mixPlan.strategy,
         mixPlan.targetTotals,
       ),
-      reason: 'Total question budget reached before threshold.',
+      reason: 'Đã dùng hết ngân sách câu hỏi trước khi đạt ngưỡng tin cậy.',
       limits: {
         maxRounds: MAX_ROUNDS,
         maxQuestionsPerRound: MAX_QUESTIONS_PER_ROUND,
@@ -275,6 +302,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
   if (rankedQuestions.length === 0) {
     return {
       action: 'abstain',
+      actionVi: getActionVi('abstain'),
       threshold: CONFIDENCE_THRESHOLD,
       unresolvedClaimIds,
       concludedClaimIds,
@@ -285,7 +313,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
         mixPlan.strategy,
         mixPlan.targetTotals,
       ),
-      reason: 'No high-value validation question can improve unresolved claims.',
+      reason: 'Không còn câu hỏi xác minh đủ giá trị để tăng độ tin cậy.',
       limits: {
         maxRounds: MAX_ROUNDS,
         maxQuestionsPerRound: MAX_QUESTIONS_PER_ROUND,
@@ -322,12 +350,14 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
 
   return {
     action: 'ask',
+    actionVi: getActionVi('ask'),
     threshold: CONFIDENCE_THRESHOLD,
     unresolvedClaimIds,
     concludedClaimIds,
     selectedQuestions,
     questionMix: {
       strategy: mixPlan.strategy,
+      strategyVi: getStrategyVi(mixPlan.strategy),
       scores: {
         pastValidationScore: normalizedPastScore,
         presentStateClarity: normalizedPresentClarity,
@@ -345,7 +375,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
         present: suggestedPresent,
       },
     },
-    reason: `Ask ${selectedQuestions.length} high-value validation question(s) based on ${mixPlan.strategy} mix.`,
+    reason: `Đặt ${selectedQuestions.length} câu hỏi xác minh trọng tâm theo chiến lược ${getStrategyVi(mixPlan.strategy)}.`,
     limits: {
       maxRounds: MAX_ROUNDS,
       maxQuestionsPerRound: MAX_QUESTIONS_PER_ROUND,

@@ -35,7 +35,7 @@ server.tool(
 
 server.tool(
   'getConsultationProtocol',
-  'Returns the Vietnamese Bazi consultation preset for new sessions, including narrative response style and anti-hallucination policy.',
+  'Trả về bộ preset tư vấn Bazi tiếng Việt cho session mới, gồm văn phong kể chuyện và chính sách chống suy diễn.',
   {},
   async () => {
     const result = await getConsultationProtocol();
@@ -52,52 +52,52 @@ server.tool(
 
 server.tool(
   'getInferenceDecision',
-  'Policy engine for anti-hallucination inference. It decides whether to conclude, ask high-value follow-up questions, or abstain.',
+  'Bộ máy quyết định chống suy diễn: khi nào kết luận, khi nào hỏi thêm trọng tâm, khi nào tạm dừng.',
   {
-    round: z.number().int().min(1).describe('Current validation round, starts from 1.'),
-    totalQuestionsAsked: z.number().int().min(0).describe('Total follow-up questions already asked across rounds.'),
-    askedPastQuestions: z.number().int().min(0).optional().describe('How many past-focused questions have been asked.'),
+    round: z.number().int().min(1).describe('Vòng xác minh hiện tại, bắt đầu từ 1.'),
+    totalQuestionsAsked: z.number().int().min(0).describe('Tổng số câu hỏi đã hỏi qua các vòng.'),
+    askedPastQuestions: z.number().int().min(0).optional().describe('Số câu hỏi đã hỏi về quá khứ.'),
     askedPresentQuestions: z
       .number()
       .int()
       .min(0)
       .optional()
-      .describe('How many present-focused questions have been asked.'),
+      .describe('Số câu hỏi đã hỏi về hiện tại.'),
     pastValidationScore: z
       .number()
       .min(0)
       .max(1)
       .optional()
-      .describe('How well the model already validated past hypotheses.'),
+      .describe('Mức xác minh giả thuyết quá khứ, từ 0 đến 1.'),
     presentStateClarity: z
       .number()
       .min(0)
       .max(1)
       .optional()
-      .describe('How clear the current real-world context is.'),
+      .describe('Độ rõ bối cảnh hiện tại, từ 0 đến 1.'),
     claims: z
       .array(
         z.object({
           claimId: z.string(),
           confidence: z.number().min(0).max(1),
-          evidenceFromChart: z.boolean().describe('True only if claim has explicit chart evidence.'),
+          evidenceFromChart: z.boolean().describe('Chỉ true khi giả thuyết có bằng chứng rõ từ lá số.'),
         }),
       )
       .min(1)
-      .describe('Current inferred claims with confidence and chart-evidence flags.'),
-    targetClaimIds: z.array(z.string()).optional().describe('Claims that must reach threshold to allow conclusion.'),
+      .describe('Danh sách giả thuyết hiện tại kèm độ tin cậy và cờ bằng chứng.'),
+    targetClaimIds: z.array(z.string()).optional().describe('Những giả thuyết mục tiêu phải đạt ngưỡng để được kết luận.'),
     candidateQuestions: z
       .array(
         z.object({
           questionId: z.string(),
           questionText: z.string(),
-          claimIds: z.array(z.string()).min(1).describe('Which claims this question can validate.'),
-          expectedConfidenceGain: z.number().min(0).max(1).describe('Estimated confidence gain after asking this question.'),
-          scope: z.enum(['past', 'present']).optional().describe('Question scope. Used by dynamic question mix logic.'),
+          claimIds: z.array(z.string()).min(1).describe('Các giả thuyết mà câu hỏi này có thể xác minh.'),
+          expectedConfidenceGain: z.number().min(0).max(1).describe('Mức tăng tin cậy ước tính sau khi hỏi.'),
+          scope: z.enum(['past', 'present']).optional().describe('Phạm vi câu hỏi: quá khứ hoặc hiện tại.'),
         }),
       )
       .optional()
-      .describe('Question candidates ranked by expected confidence gain.'),
+      .describe('Danh sách câu hỏi ứng viên để chọn theo độ tăng tin cậy.'),
   },
   async (data) => {
     const result = await getInferenceDecision(data);

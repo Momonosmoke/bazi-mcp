@@ -92,7 +92,7 @@ npx -y @smithery/cli install @cantian-ai/bazi-mcp --client claude
 ### getInferenceDecision
 
 > 用于防止“证据不足时硬结论”的策略工具，返回 `conclude`、`ask` 或 `abstain`。  
-> Policy tool for anti-hallucination decisioning: returns `conclude`, `ask`, or `abstain`.
+> 策略引擎会自动决定 `结论 / 追问 / 暂停`，并给出越南语可读理由。
 
 #### 参数 | Arguments
 
@@ -146,10 +146,12 @@ npx -y @smithery/cli install @cantian-ai/bazi-mcp --client claude
 #### 返回关键字段 | Key response fields
 
 - action: `conclude | ask | abstain`
+- actionVi: `ket_luan | hoi_them | tam_dung`
 - unresolvedClaimIds
 - concludedClaimIds
 - selectedQuestions
 - questionMix
+  - strategyVi: `uu_tien_qua_khu | can_bang | uu_tien_hien_tai`
 - limits
 
 ### getBaziDetail
