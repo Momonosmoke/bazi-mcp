@@ -8,7 +8,7 @@ This policy is designed for Vietnamese Bazi consultation workflows where the ass
 2. If confidence is below threshold, ask follow-up questions to validate.
 3. Ask only high-value questions and keep question volume bounded.
 4. If confidence cannot be raised safely within limits, abstain.
-5. Use cross-domain links (finance, parents, marriage, etc.) to prioritize validation questions.
+5. Use 12-house cross links (phu_the, menh, quan_loc, phuc_duc, phu_mau...) to prioritize validation questions.
 
 ## Constants
 
@@ -24,6 +24,11 @@ This policy is designed for Vietnamese Bazi consultation workflows where the ass
 - If `pastValidationScore >= 0.8`: target mix is `2 past + 4 present`.
 
 The policy can also read `askedPastQuestions` and `askedPresentQuestions` to keep the mix balanced across rounds.
+
+## Cross-domain defaults
+
+- If `crossLinks` is not provided, the engine uses built-in 12-house linkage mapping.
+- Input typo note: use `tat_ach` (not `tat ach` with spaces).
 
 ## Decision flow
 

@@ -3,6 +3,7 @@ import { buildBazi } from './lib/bazi.js';
 import { getConsultationProtocol as getConsultationProtocolLib } from './lib/consultationProtocol.js';
 import { formatSolarTime, getSolarTime } from './lib/date.js';
 import { decideInferenceAction } from './lib/inferencePolicy.js';
+import type { Domain } from './lib/inferencePolicy.js';
 
 export { getChineseCalendar } from './lib/chineseCalendar.js';
 
@@ -47,12 +48,12 @@ export const getInferenceDecision = async (data: {
     claimId: string;
     confidence: number;
     evidenceFromChart: boolean;
-    domains?: Array<'tai_chinh' | 'to_tien' | 'bo_me' | 'vo_chong' | 'con_cai' | 'su_nghiep' | 'suc_khoe'>;
+    domains?: Domain[];
   }>;
   targetClaimIds?: string[];
   crossLinks?: Array<{
-    sourceDomain: 'tai_chinh' | 'to_tien' | 'bo_me' | 'vo_chong' | 'con_cai' | 'su_nghiep' | 'suc_khoe';
-    targetDomain: 'tai_chinh' | 'to_tien' | 'bo_me' | 'vo_chong' | 'con_cai' | 'su_nghiep' | 'suc_khoe';
+    sourceDomain: Domain;
+    targetDomain: Domain;
     weight: number;
     reason?: string;
   }>;
@@ -62,7 +63,7 @@ export const getInferenceDecision = async (data: {
     claimIds: string[];
     expectedConfidenceGain: number;
     scope?: 'past' | 'present';
-    domains?: Array<'tai_chinh' | 'to_tien' | 'bo_me' | 'vo_chong' | 'con_cai' | 'su_nghiep' | 'suc_khoe'>;
+    domains?: Domain[];
   }>;
 }) => {
   return decideInferenceAction(data);

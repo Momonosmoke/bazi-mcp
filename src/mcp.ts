@@ -7,7 +7,20 @@ const server = new McpServer({
   version: '0.0.1',
 });
 
-const domainEnum = z.enum(['tai_chinh', 'to_tien', 'bo_me', 'vo_chong', 'con_cai', 'su_nghiep', 'suc_khoe']);
+const domainEnum = z.enum([
+  'phu_the',
+  'thien_di',
+  'quan_loc',
+  'phuc_duc',
+  'phu_mau',
+  'huynh_de',
+  'menh',
+  'dien_trach',
+  'no_boc',
+  'tat_ach',
+  'tai_bach',
+  'tu_tuc',
+]);
 
 server.tool(
   'getBaziDetail',
@@ -92,8 +105,8 @@ server.tool(
     crossLinks: z
       .array(
         z.object({
-          sourceDomain: domainEnum.describe('Mảng gốc tạo ảnh hưởng, ví dụ: tai_chinh.'),
-          targetDomain: domainEnum.describe('Mảng liên quan bị ảnh hưởng, ví dụ: vo_chong.'),
+          sourceDomain: domainEnum.describe('Mảng gốc tạo ảnh hưởng, ví dụ: phu_the.'),
+          targetDomain: domainEnum.describe('Mảng liên quan bị ảnh hưởng, ví dụ: phu_mau.'),
           weight: z.number().min(0).max(1).describe('Mức ảnh hưởng liên kết chéo từ 0 đến 1.'),
           reason: z.string().optional().describe('Giải thích ngắn cho liên kết này.'),
         }),

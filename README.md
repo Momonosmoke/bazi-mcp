@@ -130,7 +130,7 @@ npx -y @smithery/cli install @cantian-ai/bazi-mcp --client claude
 
   > 当前候选结论。仅 `evidenceFromChart=true` 的结论允许被推进。  
   > Candidate claims. Only `evidenceFromChart=true` claims are allowed for progression.
-  > 可选 `domains` 用于跨主题联动（如 `tai_chinh`, `bo_me`, `vo_chong`）。  
+  > 可选 `domains` 用于跨主题联动（如 `phu_the`, `menh`, `quan_loc`）。  
   > Optional `domains` enables cross-domain linking.
 
 - targetClaimIds: `String[]` (optional)
@@ -149,6 +149,8 @@ npx -y @smithery/cli install @cantian-ai/bazi-mcp --client claude
 
   > 跨主题关联配置。用于让策略引擎在选问题时自动考虑“财务↔家庭/伴侣”等联动。  
   > Cross-domain relationship table for stronger linked reasoning.
+  > 不传时默认使用内置 12 宫位联动表。  
+  > If omitted, built-in 12-house linkage mapping is used.
 
 #### 返回关键字段 | Key response fields
 

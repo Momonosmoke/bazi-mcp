@@ -55,7 +55,20 @@
             "type": "array",
             "items": {
               "type": "string",
-              "enum": ["tai_chinh", "to_tien", "bo_me", "vo_chong", "con_cai", "su_nghiep", "suc_khoe"]
+              "enum": [
+                "phu_the",
+                "thien_di",
+                "quan_loc",
+                "phuc_duc",
+                "phu_mau",
+                "huynh_de",
+                "menh",
+                "dien_trach",
+                "no_boc",
+                "tat_ach",
+                "tai_bach",
+                "tu_tuc"
+              ]
             }
           },
           "claimIds": {
@@ -80,7 +93,20 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["tai_chinh", "to_tien", "bo_me", "vo_chong", "con_cai", "su_nghiep", "suc_khoe"]
+            "enum": [
+              "phu_the",
+              "thien_di",
+              "quan_loc",
+              "phuc_duc",
+              "phu_mau",
+              "huynh_de",
+              "menh",
+              "dien_trach",
+              "no_boc",
+              "tat_ach",
+              "tai_bach",
+              "tu_tuc"
+            ]
           }
         },
         "relatedDomains": {
@@ -92,7 +118,20 @@
             "properties": {
               "domain": {
                 "type": "string",
-                "enum": ["tai_chinh", "to_tien", "bo_me", "vo_chong", "con_cai", "su_nghiep", "suc_khoe"]
+                "enum": [
+                  "phu_the",
+                  "thien_di",
+                  "quan_loc",
+                  "phuc_duc",
+                  "phu_mau",
+                  "huynh_de",
+                  "menh",
+                  "dien_trach",
+                  "no_boc",
+                  "tat_ach",
+                  "tai_bach",
+                  "tu_tuc"
+                ]
               },
               "score": {
                 "type": "number",

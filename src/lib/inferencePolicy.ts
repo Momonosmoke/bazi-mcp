@@ -3,7 +3,19 @@ export const MAX_ROUNDS = 2;
 export const MAX_QUESTIONS_PER_ROUND = 3;
 export const MAX_TOTAL_QUESTIONS = 6;
 
-export type Domain = 'tai_chinh' | 'to_tien' | 'bo_me' | 'vo_chong' | 'con_cai' | 'su_nghiep' | 'suc_khoe';
+export type Domain =
+  | 'phu_the'
+  | 'thien_di'
+  | 'quan_loc'
+  | 'phuc_duc'
+  | 'phu_mau'
+  | 'huynh_de'
+  | 'menh'
+  | 'dien_trach'
+  | 'no_boc'
+  | 'tat_ach'
+  | 'tai_bach'
+  | 'tu_tuc';
 
 export type CrossLink = {
   sourceDomain: Domain;
@@ -11,6 +23,57 @@ export type CrossLink = {
   weight: number;
   reason?: string;
 };
+
+export const DEFAULT_CROSS_LINKS: CrossLink[] = [
+  { sourceDomain: 'phu_the', targetDomain: 'thien_di', weight: 1, reason: 'Phu the noi Thien di' },
+  { sourceDomain: 'phu_the', targetDomain: 'quan_loc', weight: 1, reason: 'Phu the noi Quan loc' },
+  { sourceDomain: 'phu_the', targetDomain: 'phuc_duc', weight: 1, reason: 'Phu the noi Phuc duc' },
+  { sourceDomain: 'phu_the', targetDomain: 'phu_mau', weight: 1, reason: 'Phu the noi Phu mau' },
+  { sourceDomain: 'huynh_de', targetDomain: 'menh', weight: 1, reason: 'Huynh de noi Menh' },
+  { sourceDomain: 'huynh_de', targetDomain: 'dien_trach', weight: 1, reason: 'Huynh de noi Dien trach' },
+  { sourceDomain: 'huynh_de', targetDomain: 'no_boc', weight: 1, reason: 'Huynh de noi No boc' },
+  { sourceDomain: 'huynh_de', targetDomain: 'tat_ach', weight: 1, reason: 'Huynh de noi Tat ach' },
+  { sourceDomain: 'menh', targetDomain: 'quan_loc', weight: 1, reason: 'Menh noi Quan loc' },
+  { sourceDomain: 'menh', targetDomain: 'thien_di', weight: 1, reason: 'Menh noi Thien di' },
+  { sourceDomain: 'menh', targetDomain: 'tai_bach', weight: 1, reason: 'Menh noi Tai bach' },
+  { sourceDomain: 'menh', targetDomain: 'huynh_de', weight: 1, reason: 'Menh noi Huynh de' },
+  { sourceDomain: 'phu_mau', targetDomain: 'no_boc', weight: 1, reason: 'Phu mau noi No boc' },
+  { sourceDomain: 'phu_mau', targetDomain: 'tat_ach', weight: 1, reason: 'Phu mau noi Tat ach' },
+  { sourceDomain: 'phu_mau', targetDomain: 'tu_tuc', weight: 1, reason: 'Phu mau noi Tu tuc' },
+  { sourceDomain: 'phu_mau', targetDomain: 'phu_the', weight: 1, reason: 'Phu mau noi Phu the' },
+  { sourceDomain: 'phuc_duc', targetDomain: 'thien_di', weight: 1, reason: 'Phuc duc noi Thien di' },
+  { sourceDomain: 'phuc_duc', targetDomain: 'tai_bach', weight: 1, reason: 'Phuc duc noi Tai bach' },
+  { sourceDomain: 'phuc_duc', targetDomain: 'tu_tuc', weight: 1, reason: 'Phuc duc noi Tu tuc' },
+  { sourceDomain: 'phuc_duc', targetDomain: 'phu_the', weight: 1, reason: 'Phuc duc noi Phu the' },
+  { sourceDomain: 'dien_trach', targetDomain: 'tat_ach', weight: 1, reason: 'Dien trach noi Tat ach' },
+  { sourceDomain: 'dien_trach', targetDomain: 'tai_bach', weight: 1, reason: 'Dien trach noi Tai bach' },
+  { sourceDomain: 'dien_trach', targetDomain: 'tu_tuc', weight: 1, reason: 'Dien trach noi Tu tuc' },
+  { sourceDomain: 'dien_trach', targetDomain: 'huynh_de', weight: 1, reason: 'Dien trach noi Huynh de' },
+  { sourceDomain: 'quan_loc', targetDomain: 'tat_ach', weight: 1, reason: 'Quan loc noi Tat ach' },
+  { sourceDomain: 'quan_loc', targetDomain: 'tai_bach', weight: 1, reason: 'Quan loc noi Tai bach' },
+  { sourceDomain: 'quan_loc', targetDomain: 'phu_the', weight: 1, reason: 'Quan loc noi Phu the' },
+  { sourceDomain: 'quan_loc', targetDomain: 'menh', weight: 1, reason: 'Quan loc noi Menh' },
+  { sourceDomain: 'no_boc', targetDomain: 'thien_di', weight: 1, reason: 'No boc noi Thien di' },
+  { sourceDomain: 'no_boc', targetDomain: 'tu_tuc', weight: 1, reason: 'No boc noi Tu tuc' },
+  { sourceDomain: 'no_boc', targetDomain: 'huynh_de', weight: 1, reason: 'No boc noi Huynh de' },
+  { sourceDomain: 'no_boc', targetDomain: 'phu_mau', weight: 1, reason: 'No boc noi Phu mau' },
+  { sourceDomain: 'thien_di', targetDomain: 'phu_the', weight: 1, reason: 'Thien di noi Phu the' },
+  { sourceDomain: 'thien_di', targetDomain: 'menh', weight: 1, reason: 'Thien di noi Menh' },
+  { sourceDomain: 'thien_di', targetDomain: 'phuc_duc', weight: 1, reason: 'Thien di noi Phuc duc' },
+  { sourceDomain: 'thien_di', targetDomain: 'no_boc', weight: 1, reason: 'Thien di noi No boc' },
+  { sourceDomain: 'tat_ach', targetDomain: 'huynh_de', weight: 1, reason: 'Tat ach noi Huynh de' },
+  { sourceDomain: 'tat_ach', targetDomain: 'phu_mau', weight: 1, reason: 'Tat ach noi Phu mau' },
+  { sourceDomain: 'tat_ach', targetDomain: 'dien_trach', weight: 1, reason: 'Tat ach noi Dien trach' },
+  { sourceDomain: 'tat_ach', targetDomain: 'quan_loc', weight: 1, reason: 'Tat ach noi Quan loc' },
+  { sourceDomain: 'tai_bach', targetDomain: 'menh', weight: 1, reason: 'Tai bach noi Menh' },
+  { sourceDomain: 'tai_bach', targetDomain: 'phuc_duc', weight: 1, reason: 'Tai bach noi Phuc duc' },
+  { sourceDomain: 'tai_bach', targetDomain: 'dien_trach', weight: 1, reason: 'Tai bach noi Dien trach' },
+  { sourceDomain: 'tai_bach', targetDomain: 'quan_loc', weight: 1, reason: 'Tai bach noi Quan loc' },
+  { sourceDomain: 'tu_tuc', targetDomain: 'phu_mau', weight: 1, reason: 'Tu tuc noi Phu mau' },
+  { sourceDomain: 'tu_tuc', targetDomain: 'phuc_duc', weight: 1, reason: 'Tu tuc noi Phuc duc' },
+  { sourceDomain: 'tu_tuc', targetDomain: 'dien_trach', weight: 1, reason: 'Tu tuc noi Dien trach' },
+  { sourceDomain: 'tu_tuc', targetDomain: 'no_boc', weight: 1, reason: 'Tu tuc noi No boc' },
+];
 
 export type Claim = {
   claimId: string;
@@ -230,6 +293,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
     crossLinks = [],
     candidateQuestions = [],
   } = input;
+  const effectiveCrossLinks = crossLinks.length > 0 ? crossLinks : DEFAULT_CROSS_LINKS;
 
   const normalizedPastScore = clampConfidence(pastValidationScore);
   const normalizedPresentClarity = clampConfidence(presentStateClarity);
@@ -246,7 +310,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
     targetClaimIds.length > 0 ? new Set(targetClaimIds) : new Set(evidenceBackedClaims.map((claim) => claim.claimId));
 
   const targetClaims = evidenceBackedClaims.filter((claim) => targetIds.has(claim.claimId));
-  const allCrossDomainInsights = buildCrossDomainInsights(targetClaims, crossLinks);
+  const allCrossDomainInsights = buildCrossDomainInsights(targetClaims, effectiveCrossLinks);
 
   if (targetClaims.length === 0) {
     return {
@@ -276,7 +340,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
   const unresolvedClaims = targetClaims.filter((claim) => claim.confidence < CONFIDENCE_THRESHOLD);
   const concludedClaimIds = concludedClaims.map((claim) => claim.claimId);
   const unresolvedClaimIds = unresolvedClaims.map((claim) => claim.claimId);
-  const unresolvedCrossDomainInsights = buildCrossDomainInsights(unresolvedClaims, crossLinks);
+  const unresolvedCrossDomainInsights = buildCrossDomainInsights(unresolvedClaims, effectiveCrossLinks);
 
   if (unresolvedClaimIds.length === 0) {
     return {
