@@ -40,6 +40,7 @@ export const getSolarTimes = async ({ bazi }) => {
 export const getInferenceDecision = async (data: {
   round: number;
   totalQuestionsAsked: number;
+  userQuestion?: string;
   askedPastQuestions?: number;
   askedPresentQuestions?: number;
   pastValidationScore?: number;

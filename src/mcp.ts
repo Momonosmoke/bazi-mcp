@@ -67,10 +67,11 @@ server.tool(
 
 server.tool(
   'getInferenceDecision',
-  'Bộ máy quyết định chống suy diễn: khi nào kết luận, khi nào hỏi thêm trọng tâm, khi nào tạm dừng.',
+  'Bộ máy quyết định chống suy diễn: tự suy ra các cung liên quan từ câu hỏi, liên kết chéo toàn cục và trả khung kể chuyện.',
   {
     round: z.number().int().min(1).describe('Vòng xác minh hiện tại, bắt đầu từ 1.'),
     totalQuestionsAsked: z.number().int().min(0).describe('Tổng số câu hỏi đã hỏi qua các vòng.'),
+    userQuestion: z.string().optional().describe('Câu hỏi gốc của user để suy ra cung trọng tâm và mạch kể chuyện.'),
     askedPastQuestions: z.number().int().min(0).optional().describe('Số câu hỏi đã hỏi về quá khứ.'),
     askedPresentQuestions: z
       .number()

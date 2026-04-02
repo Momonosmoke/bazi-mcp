@@ -38,6 +38,7 @@ export const getConsultationProtocol = (): ConsultationProtocol => {
     'Không đưa ra kết luận nếu thiếu dữ kiện; phải hỏi thêm để xác minh.',
     'Mỗi vòng hỏi tối đa 3 câu, tối đa 2 vòng, tổng tối đa 6 câu.',
     'Khi phân tích, phải liên kết chéo theo 12 cung (mệnh, phu thê, quan lộc, phúc đức, phụ mẫu...) để tránh kết luận rời rạc.',
+    'Từ câu hỏi của user, phải tự suy ra cung trọng tâm và mở rộng sang các cung liên quan trước khi kết luận.',
     'Câu hỏi phải trung tính, không dẫn dắt, và gắn với giả thuyết có bằng chứng.',
     'Khi trả lời, ưu tiên văn phong kể chuyện thực tế, có bối cảnh và diễn tiến.',
     'Tránh trả lời dạng dàn ý máy móc; chỉ dùng bullet khi thật sự cần.',

@@ -9,6 +9,7 @@ This policy is designed for Vietnamese Bazi consultation workflows where the ass
 3. Ask only high-value questions and keep question volume bounded.
 4. If confidence cannot be raised safely within limits, abstain.
 5. Use 12-house cross links (phu_the, menh, quan_loc, phuc_duc, phu_mau...) to prioritize validation questions.
+6. Infer focus domains from the user question first, then expand linked domains for story-mode output.
 
 ## Constants
 

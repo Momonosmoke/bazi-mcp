@@ -96,6 +96,7 @@ export type CandidateQuestion = {
 export type PolicyInput = {
   round: number;
   totalQuestionsAsked: number;
+  userQuestion?: string;
   askedPastQuestions?: number;
   askedPresentQuestions?: number;
   pastValidationScore?: number;
@@ -138,6 +139,13 @@ export type PolicyOutput = {
     focusDomains: Domain[];
     relatedDomains: Array<{ domain: Domain; score: number }>;
     note: string;
+  };
+  storyBlueprint: {
+    question: string;
+    seedDomains: Domain[];
+    linkedDomains: Domain[];
+    narrativeOrder: Domain[];
+    guidance: string[];
   };
   questionMix: QuestionMix;
   reason: string;
@@ -213,12 +221,68 @@ const getActionVi = (action: PolicyOutput['action']): PolicyOutput['actionVi'] =
   return 'tam_dung';
 };
 
-const buildCrossDomainInsights = (claims: Claim[], crossLinks: CrossLink[]) => {
+const DOMAIN_KEYWORDS: Array<{ domain: Domain; keywords: string[] }> = [
+  { domain: 'phu_the', keywords: ['phu the', 'vợ chồng', 'vo chong', 'hôn nhân', 'hon nhan', 'tình cảm', 'tinh cam', 'yêu', 'yeu'] },
+  { domain: 'thien_di', keywords: ['thiên di', 'thien di', 'đi xa', 'di xa', 'xuất ngoại', 'xuat ngoai', 'ra ngoài', 'ra ngoai'] },
+  { domain: 'quan_loc', keywords: ['quan lộc', 'quan loc', 'công việc', 'cong viec', 'sự nghiệp', 'su nghiep', 'chức vụ', 'chuc vu'] },
+  { domain: 'phuc_duc', keywords: ['phúc đức', 'phuc duc', 'tổ tiên', 'to tien', 'phước', 'phuoc', 'nghiệp gia tộc', 'nghiep gia toc'] },
+  { domain: 'phu_mau', keywords: ['phụ mẫu', 'phu mau', 'bố mẹ', 'bo me', 'cha mẹ', 'cha me', 'gia đình gốc', 'gia dinh goc'] },
+  { domain: 'huynh_de', keywords: ['huynh đệ', 'huynh de', 'anh em', 'chị em', 'chi em', 'bạn bè thân', 'ban be than'] },
+  { domain: 'menh', keywords: ['mệnh', 'menh', 'bản thân', 'ban than', 'tính cách', 'tinh cach', 'định hướng', 'dinh huong'] },
+  { domain: 'dien_trach', keywords: ['điền trạch', 'dien trach', 'nhà cửa', 'nha cua', 'đất đai', 'dat dai', 'bất động sản', 'bat dong san'] },
+  { domain: 'no_boc', keywords: ['nô bộc', 'no boc', 'đối tác', 'doi tac', 'đồng nghiệp', 'dong nghiep', 'mạng lưới', 'mang luoi'] },
+  { domain: 'tat_ach', keywords: ['tật ách', 'tat ach', 'sức khỏe', 'suc khoe', 'bệnh', 'benh', 'tinh thần', 'tam ly'] },
+  { domain: 'tai_bach', keywords: ['tài bạch', 'tai bach', 'tiền', 'tien', 'thu nhập', 'thu nhap', 'tài chính', 'tai chinh'] },
+  { domain: 'tu_tuc', keywords: ['tử tức', 'tu tuc', 'con cái', 'con cai', 'thai', 'sinh con', 'nuôi dạy', 'nuoi day'] },
+];
+
+const inferDomainsFromQuestion = (question?: string): Domain[] => {
+  if (!question || !question.trim()) {
+    return [];
+  }
+  const normalized = question.toLowerCase();
+  const matched: Domain[] = [];
+  for (const item of DOMAIN_KEYWORDS) {
+    if (item.keywords.some((keyword) => normalized.includes(keyword))) {
+      matched.push(item.domain);
+    }
+  }
+  return Array.from(new Set(matched));
+};
+
+const buildStoryBlueprint = (question: string | undefined, seedDomains: Domain[], linkedDomains: Domain[]) => {
+  const narrativeOrder = Array.from(new Set([...seedDomains, ...linkedDomains]));
+  return {
+    question: question ?? '',
+    seedDomains,
+    linkedDomains,
+    narrativeOrder,
+    guidance: [
+      'Mở câu trả lời bằng bối cảnh hiện tại gắn trực tiếp với câu hỏi của user.',
+      'Nêu nút thắt cốt lõi từ cung trọng tâm, rồi chuyển mượt sang các cung liên kết.',
+      'Giải thích chuỗi nguyên nhân-kết quả giữa các cung thay vì tách rời từng mục.',
+      'Kết bằng kịch bản sắp tới và hành động cụ thể để user áp dụng ngay.',
+    ],
+  };
+};
+
+const buildStoryBlueprintFromInsights = (
+  question: string | undefined,
+  insights: { focusDomains: Domain[]; relatedDomains: Array<{ domain: Domain; score: number }> },
+) => {
+  const linkedDomains = insights.relatedDomains.map((item) => item.domain);
+  return buildStoryBlueprint(question, insights.focusDomains, linkedDomains);
+};
+
+const buildCrossDomainInsights = (claims: Claim[], crossLinks: CrossLink[], seedDomains: Domain[] = []) => {
   const focusDomainSet = new Set<Domain>();
   for (const claim of claims) {
     for (const domain of claim.domains ?? []) {
       focusDomainSet.add(domain);
     }
+  }
+  for (const domain of seedDomains) {
+    focusDomainSet.add(domain);
   }
   const focusDomains = Array.from(focusDomainSet);
 
@@ -284,6 +348,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
   const {
     round,
     totalQuestionsAsked,
+    userQuestion,
     askedPastQuestions = 0,
     askedPresentQuestions = 0,
     pastValidationScore = 0.5,
@@ -298,6 +363,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
   const normalizedPastScore = clampConfidence(pastValidationScore);
   const normalizedPresentClarity = clampConfidence(presentStateClarity);
   const mixPlan = getMixPlan(normalizedPastScore);
+  const inferredQuestionDomains = inferDomainsFromQuestion(userQuestion);
 
   const evidenceBackedClaims = claims
     .filter((claim) => claim.evidenceFromChart)
@@ -310,7 +376,8 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
     targetClaimIds.length > 0 ? new Set(targetClaimIds) : new Set(evidenceBackedClaims.map((claim) => claim.claimId));
 
   const targetClaims = evidenceBackedClaims.filter((claim) => targetIds.has(claim.claimId));
-  const allCrossDomainInsights = buildCrossDomainInsights(targetClaims, effectiveCrossLinks);
+  const allCrossDomainInsights = buildCrossDomainInsights(targetClaims, effectiveCrossLinks, inferredQuestionDomains);
+  const allStoryBlueprint = buildStoryBlueprintFromInsights(userQuestion, allCrossDomainInsights);
 
   if (targetClaims.length === 0) {
     return {
@@ -321,6 +388,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
       concludedClaimIds: [],
       selectedQuestions: [],
       crossDomainInsights: allCrossDomainInsights,
+      storyBlueprint: allStoryBlueprint,
       questionMix: buildEmptyQuestionMix(
         normalizedPastScore,
         normalizedPresentClarity,
@@ -340,7 +408,12 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
   const unresolvedClaims = targetClaims.filter((claim) => claim.confidence < CONFIDENCE_THRESHOLD);
   const concludedClaimIds = concludedClaims.map((claim) => claim.claimId);
   const unresolvedClaimIds = unresolvedClaims.map((claim) => claim.claimId);
-  const unresolvedCrossDomainInsights = buildCrossDomainInsights(unresolvedClaims, effectiveCrossLinks);
+  const unresolvedCrossDomainInsights = buildCrossDomainInsights(
+    unresolvedClaims,
+    effectiveCrossLinks,
+    inferredQuestionDomains,
+  );
+  const unresolvedStoryBlueprint = buildStoryBlueprintFromInsights(userQuestion, unresolvedCrossDomainInsights);
 
   if (unresolvedClaimIds.length === 0) {
     return {
@@ -351,6 +424,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
       concludedClaimIds,
       selectedQuestions: [],
       crossDomainInsights: unresolvedCrossDomainInsights,
+      storyBlueprint: unresolvedStoryBlueprint,
       questionMix: buildEmptyQuestionMix(
         normalizedPastScore,
         normalizedPresentClarity,
@@ -375,6 +449,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
       concludedClaimIds,
       selectedQuestions: [],
       crossDomainInsights: unresolvedCrossDomainInsights,
+      storyBlueprint: unresolvedStoryBlueprint,
       questionMix: buildEmptyQuestionMix(
         normalizedPastScore,
         normalizedPresentClarity,
@@ -400,6 +475,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
       concludedClaimIds,
       selectedQuestions: [],
       crossDomainInsights: unresolvedCrossDomainInsights,
+      storyBlueprint: unresolvedStoryBlueprint,
       questionMix: buildEmptyQuestionMix(
         normalizedPastScore,
         normalizedPresentClarity,
@@ -453,6 +529,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
       concludedClaimIds,
       selectedQuestions: [],
       crossDomainInsights: unresolvedCrossDomainInsights,
+      storyBlueprint: unresolvedStoryBlueprint,
       questionMix: buildEmptyQuestionMix(
         normalizedPastScore,
         normalizedPresentClarity,
@@ -517,6 +594,7 @@ export const decideInferenceAction = (input: PolicyInput): PolicyOutput => {
     concludedClaimIds,
     selectedQuestions: selectedQuestionsForOutput,
     crossDomainInsights: unresolvedCrossDomainInsights,
+    storyBlueprint: unresolvedStoryBlueprint,
     questionMix: {
       strategy: mixPlan.strategy,
       strategyVi: getStrategyVi(mixPlan.strategy),

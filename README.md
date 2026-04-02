@@ -106,6 +106,11 @@ npx -y @smithery/cli install @cantian-ai/bazi-mcp --client claude
   > 已提问总数（跨轮次累计）。  
   > Total questions asked across rounds.
 
+- userQuestion: `String` (optional)
+
+  > 用户原始问题。策略引擎会先从问题中推断重点宫位，再做跨宫位联动。  
+  > Raw user question. Engine infers focus houses before cross-link reasoning.
+
 - askedPastQuestions: `Number` (optional)
 
   > 已问的“过去验证”问题数量。  
@@ -160,6 +165,7 @@ npx -y @smithery/cli install @cantian-ai/bazi-mcp --client claude
 - concludedClaimIds
 - selectedQuestions
 - crossDomainInsights
+- storyBlueprint
 - questionMix
   - strategyVi: `uu_tien_qua_khu | can_bang | uu_tien_hien_tai`
 - limits

@@ -12,6 +12,7 @@
     "concludedClaimIds",
     "selectedQuestions",
     "crossDomainInsights",
+    "storyBlueprint",
     "questionMix",
     "reason",
     "limits"
@@ -142,6 +143,78 @@
         },
         "note": {
           "type": "string"
+        }
+      }
+    },
+    "storyBlueprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["question", "seedDomains", "linkedDomains", "narrativeOrder", "guidance"],
+      "properties": {
+        "question": { "type": "string" },
+        "seedDomains": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "phu_the",
+              "thien_di",
+              "quan_loc",
+              "phuc_duc",
+              "phu_mau",
+              "huynh_de",
+              "menh",
+              "dien_trach",
+              "no_boc",
+              "tat_ach",
+              "tai_bach",
+              "tu_tuc"
+            ]
+          }
+        },
+        "linkedDomains": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "phu_the",
+              "thien_di",
+              "quan_loc",
+              "phuc_duc",
+              "phu_mau",
+              "huynh_de",
+              "menh",
+              "dien_trach",
+              "no_boc",
+              "tat_ach",
+              "tai_bach",
+              "tu_tuc"
+            ]
+          }
+        },
+        "narrativeOrder": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "phu_the",
+              "thien_di",
+              "quan_loc",
+              "phuc_duc",
+              "phu_mau",
+              "huynh_de",
+              "menh",
+              "dien_trach",
+              "no_boc",
+              "tat_ach",
+              "tai_bach",
+              "tu_tuc"
+            ]
+          }
+        },
+        "guidance": {
+          "type": "array",
+          "items": { "type": "string" }
         }
       }
     },
