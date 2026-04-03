@@ -170,6 +170,27 @@ npx -y @smithery/cli install @cantian-ai/bazi-mcp --client claude
   - strategyVi: `uu_tien_qua_khu | can_bang | uu_tien_hien_tai`
 - limits
 
+### renderNarrative
+
+> 根据推断结果自动生成越南语叙事回答，输出完整故事线而不是分散要点。  
+> Auto-renders a Vietnamese narrative answer from inference outputs.
+
+#### 参数 | Arguments
+
+- userQuestion: `String` (required)
+- chartHighlights: `String[]` (optional)
+- validatedPast: `String[]` (optional)
+- currentContext: `String[]` (optional)
+- futureOutlook: `Array<{ scenario, condition, outlook, confidence, action }>` (optional)
+- crossDomainInsights: `Object` (optional)
+- storyBlueprint: `Object` (optional)
+
+#### 返回 | Output
+
+- title
+- narrative
+- sections
+
 ### getBaziDetail
 
 > 根据给定的公历或农历时间计算八字信息。

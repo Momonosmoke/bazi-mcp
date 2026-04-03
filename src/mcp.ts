@@ -1,6 +1,13 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import z from 'zod';
-import { getBaziDetail, getChineseCalendar, getConsultationProtocol, getInferenceDecision, getSolarTimes } from './index.js';
+import {
+  getBaziDetail,
+  getChineseCalendar,
+  getConsultationProtocol,
+  getInferenceDecision,
+  getRenderedNarrative,
+  getSolarTimes,
+} from './index.js';
 
 const server = new McpServer({
   name: 'Bazi',
@@ -130,6 +137,62 @@ server.tool(
   },
   async (data) => {
     const result = await getInferenceDecision(data);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result),
+        },
+      ],
+    };
+  },
+);
+
+server.tool(
+  'renderNarrative',
+  'Tu dong viet cau tra loi theo mach truyen tu du lieu da suy luan va lien ket cheo 12 cung.',
+  {
+    userQuestion: z.string().describe('Cau hoi goc cua user.'),
+    chartHighlights: z.array(z.string()).optional().describe('Diem nhan la so dung de dan truyện.'),
+    validatedPast: z.array(z.string()).optional().describe('Su kien qua khu da xac thuc.'),
+    currentContext: z.array(z.string()).optional().describe('Boi canh hien tai da xac thuc.'),
+    futureOutlook: z
+      .array(
+        z.object({
+          scenario: z.string().describe('Ten kich ban.'),
+          condition: z.string().describe('Dieu kien de kich ban xay ra.'),
+          outlook: z.string().describe('Dien bien du kien.'),
+          confidence: z.number().min(0).max(1).describe('Do tin cay 0-1.'),
+          action: z.string().describe('Hanh dong thuc te de ap dung.'),
+        }),
+      )
+      .optional()
+      .describe('Danh sach kich ban tuong lai gan.'),
+    crossDomainInsights: z
+      .object({
+        focusDomains: z.array(domainEnum),
+        relatedDomains: z.array(
+          z.object({
+            domain: domainEnum,
+            score: z.number().min(0),
+          }),
+        ),
+        note: z.string().optional(),
+      })
+      .optional(),
+    storyBlueprint: z
+      .object({
+        question: z.string(),
+        seedDomains: z.array(domainEnum),
+        linkedDomains: z.array(domainEnum),
+        narrativeOrder: z.array(domainEnum),
+        guidance: z.array(z.string()),
+      })
+      .optional()
+      .describe('Khung cau chuyen tu getInferenceDecision.'),
+  },
+  async (data) => {
+    const result = await getRenderedNarrative(data);
     return {
       content: [
         {

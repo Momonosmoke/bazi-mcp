@@ -4,6 +4,7 @@ import { getConsultationProtocol as getConsultationProtocolLib } from './lib/con
 import { formatSolarTime, getSolarTime } from './lib/date.js';
 import { decideInferenceAction } from './lib/inferencePolicy.js';
 import type { Domain } from './lib/inferencePolicy.js';
+import { renderNarrative } from './lib/storyRenderer.js';
 
 export { getChineseCalendar } from './lib/chineseCalendar.js';
 
@@ -72,4 +73,32 @@ export const getInferenceDecision = async (data: {
 
 export const getConsultationProtocol = async () => {
   return getConsultationProtocolLib();
+};
+
+export const getRenderedNarrative = async (data: {
+  userQuestion: string;
+  chartHighlights?: string[];
+  validatedPast?: string[];
+  currentContext?: string[];
+  futureOutlook?: Array<{
+    scenario: string;
+    condition: string;
+    outlook: string;
+    confidence: number;
+    action: string;
+  }>;
+  crossDomainInsights?: {
+    focusDomains: Domain[];
+    relatedDomains: Array<{ domain: Domain; score: number }>;
+    note?: string;
+  };
+  storyBlueprint?: {
+    question: string;
+    seedDomains: Domain[];
+    linkedDomains: Domain[];
+    narrativeOrder: Domain[];
+    guidance: string[];
+  };
+}) => {
+  return renderNarrative(data);
 };
